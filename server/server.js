@@ -7,6 +7,13 @@ const io = require("socket.io")(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
   console.log("New User Connected!");
+  socket.on("onTextChange", (data) => {
+    io.emit("on_text_change", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
 });
 
 const PORT = 3030;
