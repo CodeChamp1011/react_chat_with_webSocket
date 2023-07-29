@@ -8,7 +8,10 @@ let socket = undefined;
 const connection_url = "http://localhost:3030"; // process.env.REACT_APP_SOCKET_API;
 
 function App() {
+  const [text, setText] = useForm("text");
   const [messages, setMessages] = useForm("messages", []);
+  const [showAlert, setShowAlert] = useState(false);
+  const broadcastButton = useRef(null);
 
   useEffect(() => {
     socket = io(connection_url, { transport: ["websocket"] });
@@ -16,26 +19,67 @@ function App() {
     socket.on("on-text-change", (data) => {
       setMessages((prev) => [...prev, data]);
 
-      // if (showAlert) setShowAlert(false);
-      // if (data.from === socket.id) setText("");
-      // else setShowAlert(true);
+      console.log(socket.id, "123123");
+
+      if (showAlert) setShowAlert(false);
+      if (data.from === socket.id) setText("");
+      else setShowAlert(true);
     });
   }, []);
 
+  const onSubmit = (e) => {
+    /**
+     * Note: it would be great if you use different notations
+     * for emitting to server from client
+     * and emitting from server to client
+     */
+
+    if (!text) return;
+    socket.emit("onTextChange", {
+      text,
+      from: socket.id,
+    });
+  };
+
+  const buttonTriggers = ["Enter"];
+  const keyPressed = (e) => {
+    if (buttonTriggers.indexOf(e.key) >= 0) e.preventDefault();
+
+    if (e.key === "Enter") broadcastButton.current.click();
+  };
+
   return (
     <Container className="w-25" fluid>
-      <Alert className="mt-5" variant={"success"} dismissible>
-        Hey, You got a new Message !!
-      </Alert>
+      {showAlert ? (
+        <Alert
+          variant={"success"}
+          dismissible
+          onClose={() => setShowAlert(false)}
+        >
+          Hey, You got a new Message !!
+        </Alert>
+      ) : (
+        <></>
+      )}
       <Form.Group className="mt-5" controlId="formBasicEmail">
-        <Form.Control placeholder="Enter text" />
+        <Form.Control
+          placeholder="Enter text"
+          value={text}
+          onKeyDown={(e) => keyPressed(e)}
+          onChange={(e) => setText(e.target.value)}
+        />
       </Form.Group>
       <ul>
         {messages.map((m, ind) => (
           <li key={ind}>{m.text}</li>
         ))}
       </ul>
-      <Button className="mt-2" variant="primary">
+      <Button
+        ref={broadcastButton}
+        onClick={onSubmit}
+        className="mt-2"
+        variant="primary"
+      >
         Broadcast
       </Button>
     </Container>
