@@ -7,7 +7,7 @@ import io from "socket.io-client";
 let socket = undefined;
 const connection_url = "http://localhost:3030"; // process.env.REACT_APP_SOCKET_API;
 
-function App() {
+const App = () => {
   const [text, setText] = useForm("text");
   const [messages, setMessages] = useForm("messages", []);
   const [showAlert, setShowAlert] = useState(false);
@@ -19,14 +19,11 @@ function App() {
     socket.on("on-text-change", (data) => {
       setMessages((prev) => [...prev, data]);
 
-      console.log(socket.id, "123123");
-
       if (showAlert) setShowAlert(false);
       if (data.from === socket.id) setText("");
       else setShowAlert(true);
     });
   }, []);
-
   const onSubmit = (e) => {
     /**
      * Note: it would be great if you use different notations
@@ -84,6 +81,6 @@ function App() {
       </Button>
     </Container>
   );
-}
+};
 
 export default App;
